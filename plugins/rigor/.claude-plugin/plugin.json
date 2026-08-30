@@ -1,0 +1,24 @@
+{
+  "name": "rigor",
+  "displayName": "Rigor",
+  "version": "1.0.0",
+  "description": "Three behavioral guardrails, each firing at a different moment in a task: check prior work before building, execute specified tasks literally, and source every claim. Unlike literature-search skills, these fire when the user did NOT ask for research.",
+  "author": {
+    "name": "Kant Wang",
+    "url": "https://github.com/wangkant"
+  },
+  "homepage": "https://github.com/wangkant/rigor",
+  "repository": "https://github.com/wangkant/rigor",
+  "license": "MIT",
+  "keywords": [
+    "guardrails",
+    "prior-art",
+    "novelty-check",
+    "reuse",
+    "claim-sourcing",
+    "scope-creep",
+    "reproducibility",
+    "research"
+  ],
+  "skills": "./skills/"
+}

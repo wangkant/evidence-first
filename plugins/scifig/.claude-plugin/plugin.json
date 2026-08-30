@@ -1,0 +1,24 @@
+{
+  "name": "scifig",
+  "displayName": "scifig",
+  "version": "1.0.0",
+  "description": "Scientific figures from claim to submission: a four-line figure spec, chart choice by encoding effectiveness, numeric assertions against the claim, eight deterministic defect checks, colour-vision and grayscale simulation, and journal-column-width vector export.",
+  "author": {
+    "name": "Kant Wang",
+    "url": "https://github.com/wangkant"
+  },
+  "homepage": "https://github.com/wangkant/rigor",
+  "repository": "https://github.com/wangkant/rigor",
+  "license": "MIT",
+  "keywords": [
+    "scientific-figures",
+    "data-visualization",
+    "matplotlib",
+    "publication",
+    "colorblind",
+    "accessibility",
+    "journal",
+    "vector-export"
+  ],
+  "skills": "./skills/"
+}

@@ -1,0 +1,30 @@
+{
+  "name": "wangkant",
+  "description": "Kant Wang's authored Claude Code plugins",
+  "owner": {
+    "name": "Kant Wang",
+    "url": "https://github.com/wangkant"
+  },
+  "plugins": [
+    {
+      "name": "rigor",
+      "description": "Three behavioral guardrails that fire at three moments in a task: check prior work before building, execute specified tasks literally, and source every claim.",
+      "version": "1.0.0",
+      "source": "./plugins/rigor",
+      "author": {
+        "name": "Kant Wang",
+        "url": "https://github.com/wangkant"
+      }
+    },
+    {
+      "name": "scifig",
+      "description": "Scientific figures from claim to submission: figure spec, encoding-effectiveness chart choice, numeric claim assertions, deterministic defect checks, CVD simulation, journal-width vector export.",
+      "version": "1.0.0",
+      "source": "./plugins/scifig",
+      "author": {
+        "name": "Kant Wang",
+        "url": "https://github.com/wangkant"
+      }
+    }
+  ]
+}
