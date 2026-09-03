@@ -1,8 +1,8 @@
 {
   "name": "rigor",
   "displayName": "Rigor",
-  "version": "1.0.0",
-  "description": "Three behavioral guardrails, each firing at a different moment in a task: check prior work before building, execute specified tasks literally, and source every claim. Unlike literature-search skills, these fire when the user did NOT ask for research.",
+  "version": "1.1.0",
+  "description": "General-purpose research rigor: check prior work before starting, preserve the requested research scope during execution, and connect findings to precise evidence.",
   "author": {
     "name": "Kant Wang",
     "url": "https://github.com/wangkant"
@@ -11,14 +11,14 @@
   "repository": "https://github.com/wangkant/rigor",
   "license": "MIT",
   "keywords": [
-    "guardrails",
-    "prior-art",
-    "novelty-check",
-    "reuse",
+    "research",
+    "research-workflow",
+    "evidence",
+    "literature-review",
+    "prior-work",
+    "scope",
     "claim-sourcing",
-    "scope-creep",
-    "reproducibility",
-    "research"
+    "reproducibility"
   ],
   "skills": "./skills/"
 }

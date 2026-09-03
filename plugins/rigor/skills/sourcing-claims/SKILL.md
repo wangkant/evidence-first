@@ -1,91 +1,64 @@
 ---
 name: sourcing-claims
-description: Use when about to write or report ANY number, verdict, or factual claim — a metric like R²/AUROC/latency/delta, a "which option wins" call, a count/ratio/percentage, a confound-control figure — into a summary doc, into persistent notes, or to the user as a conclusion. ALSO for claims about the outside world — what a tool/library/API does, what a paper reported, what a file format supports, what a model was trained on. ALSO when tempted to state a result from recollection or expectation, before the producing run finished, or to repeat a number computed at an earlier pipeline stage. Trigger phrases: "what's the result", "the delta / the score", "is A or B better", "robust / tied", "how many / what fraction", "the docs say", "the official way is", "X doesn't support Y", "write it into the summary".
+description: Use when writing a research claim, quantitative result, comparison, literature synthesis, method statement, or conclusion that must be traceable to data or external evidence.
 ---
 
-# Sourcing Claims
+# Sourcing Research Claims
 
-## Overview
+## Purpose
 
-**The one rule:** every number, verdict, or factual claim you write must carry a locator you
-opened THIS turn. Everything else is `PENDING`.
+Make each substantive claim traceable to the evidence that supports it. Distinguish what the
+current work measured, what another source reported, and what the researcher inferred.
 
-Two kinds of locator, not interchangeable:
-
-| | **A. Measurement** | **B. External reference** |
+| Claim type | Appropriate locator | What it supports |
 |---|---|---|
-| Locator | on-disk result file + field | URL, or third-party `file:line`, or paper/DOI |
-| Answers | "what is true of OUR data" | "what is true of the world / the tool / the field" |
-| Cannot answer | anything about the outside world | **anything about our data** |
+| Measured | Data/result file plus table, field, query, figure, or analysis step | A statement about the current study or dataset |
+| Reported | DOI or stable URL plus page, section, table, figure, or quoted passage | What an external source states or demonstrates |
+| Inferred | The supporting measured/reported evidence plus explicit reasoning | An interpretation, explanation, or synthesis |
 
-An expectation is not a result. A recollection is not a verification. Training knowledge about
-a library is a **hypothesis** until you open the docs or installed source. Another agent's or
-an earlier session's "DONE/verified" is a **claim**, not a source — claimed ≠ verified.
-**Violating the letter of this rule violates its spirit.**
+These are not interchangeable. Literature cannot substitute for a measurement on the current
+data, and a local result cannot by itself establish a general fact.
 
-Process only — never copy specific result numbers into this file.
+## Workflow
 
-**When NOT to use:** pure code/plumbing with no claim attached. Strategy calls are the
-advisor's. Sibling guardrails: `executing-as-specified`; `checking-prior-work` — fires EARLIER,
-before the work is done, when "has someone already done this / is it already built" would change
-the design. This skill cannot save a run that should never have been designed that way.
+For every important number, comparison, method statement, or conclusion:
 
-## Shared checks (every claim)
+1. Classify it as **measured**, **reported**, or **inferred**.
+2. Open the supporting artifact during the current work and attach a precise locator.
+3. Check that the source supports the exact scope and strength of the wording.
+4. For counts, ratios, or percentages, state the denominator, unit, filters, deduplication, and
+   analysis stage.
+5. For mutable sources, record the version or access date. For methods, identify the version
+   and parameters that affect the result.
+6. Separate observation from explanation. If several explanations fit, retain the alternatives
+   and name the evidence that could distinguish them.
+7. If support is incomplete, qualify the statement or mark it `PENDING` rather than filling the
+   gap from memory or expectation.
 
-Every "no" → stop; write `PENDING` or fix the gap.
+## Evidence checks
 
-1. **Locator** — exact file+field / URL / `file:line`, opened THIS turn?
-2. **No bending** — acceptable outcomes stated BEFORE looking; real value kept even when it
-   contradicts my prediction, and the contradiction said out loud?
-3. **Really there** — actual line(s) pasted; every cited path/URL resolves?
-4. **Counting basis stated** — for any count/ratio: denominator, filter/QC stage, and dedup
-   rule named? A number computed BEFORE a filter, quoted AFTER it, is a new unsourced claim —
-   recompute at the current stage.
+- Confirm the producing analysis completed and the cited output exists.
+- Recompute values after material filtering or quality-control changes.
+- Prefer primary evidence for load-bearing claims; use reviews for context and discovery.
+- Cite the relevant passage or result, not merely a paper title or homepage.
+- Represent conflicting evidence and uncertainty instead of selecting only the convenient
+  source.
+- Claim reproducibility only when the necessary data, code, notebook, protocol, or procedural
+  detail is actually available.
 
-## Class A — Measurement (our data)
+## Common mistakes
 
-5. **Finished** — producing run complete: correct PID dead (capture `$!`, never hardcode) AND
-   output file on disk. "Looks done" ≠ done.
-6. **Alternatives open** — multiple explanations fit? List all, mark OPEN, record the
-   resolving test — don't default to the flattering one.
-7. **Existence ≠ magnitude** — confounds: state DIRECTION separately from MAGNITUDE; get
-   magnitude from a file (matched, leak-free re-run). Winner-favoring confound uncontrolled
-   ⇒ INCONCLUSIVE; disclaim it.
-8. **"Reproducible" = script on disk** — only claim reproducibility if a runnable script
-   exists; cite its path.
-
-### Red flags A — STOP
-
-| Thought | Reality |
+| Mistake | Correction |
 |---|---|
-| "I remember it was about X" | Recollection ≠ verification. Re-open the file this turn. |
-| "The run looks about done" | Confirm PID dead AND output exists. |
-| "It matches what I expected" | Outcomes first; write the real value even against yourself. |
-| "I'll write it now, source it later" | Unsourced numbers become next session's "facts". PENDING. |
-| "The ratio from the earlier step still holds" | Post-QC/filter, the denominator changed. Recompute. |
-| "The other agent said it's verified" | Their claim is your PENDING. Open the artifact yourself. |
+| Repeating a remembered result | Reopen the source or mark it `PENDING` |
+| Reporting a value from an earlier pipeline stage | Recompute for the final analysis set |
+| Treating correlation or association as mechanism | Label the inference and its alternatives |
+| Using an external benchmark as evidence about the current data | Measure the current data directly |
+| Citing documentation for what a tool actually produced | Cite both intended behavior and the observed output when both matter |
+| Hiding uncertainty behind a categorical verdict | Report the uncertainty, sensitivity, or unresolved evidence |
 
-## Class B — External (the world)
+Pure formatting or plumbing with no factual or interpretive claim does not require claim-level
+sourcing.
 
-5. **Dated and versioned** — record what you read and when; for installed code cite the LOCAL
-   copy (`<pkg>/file.py:LINE`) — the installed version is what runs, not upstream.
-6. **Says ≠ does** — docs/FAQs/papers state intent. Where cheap, confirm against installed
-   code or a one-shot experiment; report BOTH.
-7. **Producer's source before inverse transforms** — before asserting what a stored field
-   means (scale, offset, orientation, units), read the upstream code that wrote it.
-8. **Never substitutes for A** — B may motivate or contextualize, never stand in for a
-   measurement on our data. If B and A disagree about our data, A wins; record the
-   disagreement.
-
-For "does tool X support Y?": grep the INSTALLED package — by behaviour, not only by the name
-you expect. A wrong-name grep is not evidence of absence.
-
-### Red flags B — STOP
-
-| Thought | Reality |
-|---|---|
-| "That library doesn't have that function" | Grep the installed copy, by behaviour and name. |
-| "The docs say so, that settles it" | Docs = intent. Installed code = what runs. Cite both. |
-| "The paper reported X, so ours should be fine" | Class B says nothing about OUR data. Measure. |
-| "It's general knowledge about the format" | Formats have quiet per-implementation behaviour. Spec line or test. |
-| "The field is obviously in log-space / 1-based / strand-aware" | Read the producer's writing code. |
+Related skills: `checking-prior-work` shapes the study using existing knowledge;
+`executing-as-specified` keeps the analysis aligned with the agreed scope.

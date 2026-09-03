@@ -1,6 +1,6 @@
 {
   "name": "wangkant",
-  "description": "Kant Wang's authored Claude Code plugins",
+  "description": "Research skills for rigorous analysis and scientific communication",
   "owner": {
     "name": "Kant Wang",
     "url": "https://github.com/wangkant"
@@ -8,8 +8,8 @@
   "plugins": [
     {
       "name": "rigor",
-      "description": "Three behavioral guardrails that fire at three moments in a task: check prior work before building, execute specified tasks literally, and source every claim.",
-      "version": "1.0.0",
+      "description": "General-purpose research skills for checking prior work, preserving the requested scope, and grounding findings in evidence.",
+      "version": "1.1.0",
       "source": "./plugins/rigor",
       "author": {
         "name": "Kant Wang",

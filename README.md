@@ -1,17 +1,19 @@
 # rigor
 
-Two Claude Code plugins:
+General-purpose research skills for evidence-grounded work, plus a toolkit for
+publication-quality scientific figures.
 
-- **`rigor`** — three behavioral guardrails that fire at three different moments in a task.
+- **`rigor`** — three research guardrails for checking prior work, staying within the
+  requested scope, and grounding claims in evidence.
 - **`scifig`** — scientific figures, from claim to submission.
 
-```
+```text
 /plugin marketplace add wangkant/rigor
 /plugin install rigor@wangkant
 /plugin install scifig@wangkant
 ```
 
-Or copy the skills directly — they are plain Markdown and work in any harness that reads
+The skills are plain Markdown and can also be copied into any harness that reads
 `SKILL.md`:
 
 ```bash
@@ -21,147 +23,93 @@ cp -r /tmp/rigor/plugins/*/skills/* ~/.claude/skills/
 
 ---
 
-# rigor
+## rigor
 
-Coding agents fail in three specific, repeatable ways: they **build things that already exist**,
-they **add work nobody asked for**, and they **state numbers they never verified**. One guardrail
-each.
+Research can go wrong before, during, or after the analysis: a question may repeat known
+work, the execution may drift beyond the stated scope, or the final claims may outrun the
+evidence. `rigor` adds one skill at each point.
 
-| | Fires | The rule in one line | What it does *not* cover |
-|---|---|---|---|
-| `checking-prior-work` | **Before** the work | Before the first substantive artifact, find who already did this | Whether the result is correct |
-| `executing-as-specified` | **During** the work | A specified task gets the minimal literal thing, with no injected extras | Whether the task was worth doing |
-| `sourcing-claims` | **When reporting** | Every number, verdict, and external fact carries a locator you opened this turn, or it is `PENDING` | Whether the experiment should have been designed that way |
+| Skill | When it applies | Core rule |
+|---|---|---|
+| `checking-prior-work` | Before substantive research work | Check relevant literature, records, data, methods, and prior analyses before deciding what to do |
+| `executing-as-specified` | While carrying out a defined research request | Preserve the requested question, evidence, method, constraints, and deliverable; surface material problems instead of silently changing scope |
+| `sourcing-claims` | When reporting findings | Distinguish measured, reported, and inferred claims, and attach a precise locator to each substantive claim |
 
-The ordering matters. `sourcing-claims` cannot save an experiment that should never have been
-designed the way it was: every number can be properly sourced while the whole design
-re-discovers a result published a decade ago. Only `checking-prior-work` catches that, and only
-because it fires before anything is built.
+The skills are domain-general. They apply to literature reviews, experimental and
+observational studies, quantitative analysis, qualitative synthesis, benchmarking, dataset
+construction, methods development, and research writing.
 
-## How this differs from literature-search skills
+### `checking-prior-work`
 
-There are already good skills for **doing research** — `litreview`, `deep-research`, `deepread`,
-`patent`, [deep-dive](https://github.com/kimsb2429/deep-dive-skill), Academic Researcher agents.
-They fire when the user **asks for research**.
+Search two complementary surfaces before committing to an approach:
 
-`checking-prior-work` is the inversion: it fires when the user **did not ask for research** —
-when they said "just implement this" or "write me a script". A literature-review skill will
-never trigger on *"add a did-you-mean to my CLI"*, and that is exactly the case where the
-baseline agent made **zero lookups** and invented an unsourced threshold.
+- **Prior evidence:** papers, reviews, protocols, preregistrations, standards, and other
+  sources that may already answer the question or constrain the design.
+- **Existing resources:** internal notes, previous analyses, datasets, instruments, code,
+  and established methods that may already provide what the task needs.
 
-The differentiator is trigger timing, not search capability. Which is why the skill's single
-most important clause is: **a task not containing the word "experiment" is not an exemption.**
-"Just write me a script / add a feature / pick me a threshold" is the *highest*-risk framing,
-because that is exactly where the check silently never fires.
+The skill ends with a concise `PRIOR WORK` record: what was searched, what was found, what
+was not found, and how the result changes the proposed work. Search depth scales with the
+claim, but never to zero when originality, method choice, or evidence quality is at stake.
 
-Nearest genuine neighbours, neither of which overlaps: `zero-hallucination-coder`
-(Discuss→Map→Decompose→Execute→Verify, anti-scope-creep) and
-[Preflight](https://github.com/preflight-dev/preflight) (catches vague requirements before
-execution).
+### `executing-as-specified`
 
-## `checking-prior-work`
+A defined research request is treated as a scope contract. The skill preserves the stated
+question, population or corpus, evidence, methods, exclusions, and output. It prevents
+silent additions such as extra filters, analyses, controls, or interpretations that change
+the meaning of the result.
 
-Domain-general — software, data, ops, or research. Two classes:
+Material validity, safety, feasibility, or ethics problems are still surfaced. The skill
+does not require blind execution; it requires making necessary deviations explicit rather
+than quietly rewriting the study.
 
-- **Class A, prior art** — papers, issue trackers, standards, upstream docs, changelogs.
-  Search *before* designing; if prior art exists, change the design *first* rather than running
-  the original plan and softening the wording afterwards. Load-bearing citations get read, not
-  just cited.
-- **Class B, existing resources** — in order, stopping at the first that answers: this repo and
-  disk → the standard library and installed dependencies (grepped **by behaviour**, not by the
-  name you expect) → the authoritative dataset, API, or spec → and only then build something
-  new. **Never invent a metric an authoritative source already defines.**
+### `sourcing-claims`
 
-It requires a `PRIOR WORK` block (SEARCHED / FOUND / NOT FOUND / **VERDICT**) before the first
-substantive action. `SEARCHED: none` is not a valid value. VERDICT is the load-bearing field —
-it is the sentence stating what the search changed. `NOT FOUND` is mandatory whenever the
-verdict is `gap` or `build-new`, because both are claims about absence, and absence means
-nothing without the query and the surface attached.
+Claims are labeled by how they are known:
 
-## `executing-as-specified`
+- **Measured:** computed or observed in the current work, with a data/result locator.
+- **Reported:** stated by an external source, with a precise citation.
+- **Inferred:** an interpretation that connects evidence to a conclusion, labeled as such.
 
-When a user specifies a concrete task, they have already weighed the tradeoffs. Caveat-weighing
-is *their* job, done upfront in how they phrased the request. What they didn't ask for is what
-they don't want — not a gap for you to fill. Adding unrequested "thoroughness" violates the
-spirit of the request, not just its letter.
-
-The deliberate inverse also holds: if the task is genuinely underspecified, this skill does not
-apply — surface the choices and align first.
-
-## `sourcing-claims`
-
-Every number, verdict, or factual claim must carry a locator opened **this turn**; everything
-else is `PENDING`. Two kinds of locator that are not interchangeable: **measurement** (an
-on-disk result file and field, answering what is true of *our* data) and **external reference**
-(a URL, third-party `file:line`, or DOI, answering what is true of the world). External
-references can never stand in for a measurement.
-
-An expectation is not a result. A recollection is not a verification. Training knowledge about a
-library is a hypothesis until you open the installed source. Another agent's "DONE" is a claim,
-not a source.
+Counts name their denominator and filtering stage; mutable sources record a version or
+access date; conflicting evidence and unresolved uncertainty remain visible. A citation to
+the literature cannot substitute for a measurement on the current data, and a local result
+cannot establish a general fact about the world.
 
 ---
 
-# scifig
+## scifig
 
-A scientific figure rarely fails because someone can't drive matplotlib. It fails because it has
-no claim, because the encoding lies, or because the figure and the text disagree. So the order
-is: **pin the claim → choose the encoding → draw → let the script assert the numbers → run the
-checker → look at it → export.**
+A scientific figure rarely fails because someone cannot drive matplotlib. It fails because
+it has no claim, because the encoding misleads, or because the figure and the text disagree.
+The workflow is: **pin the claim → choose the encoding → draw → assert the numbers → run the
+checker → inspect the render → export.**
 
-- A four-line figure spec (CLAIM / UNIT / MAP / SOURCE) that decides the chart type before any
+- A four-line figure spec (`CLAIM / UNIT / MAP / SOURCE`) that determines the chart before
   code is written.
-- Chart choice by the encoding-effectiveness ladder (Cleveland & McGill 1984; Mackinlay 1986),
-  not from a chart catalog.
-- `scripts/figstyle.py` — journal geometry, **real** font-availability resolution (metric-
-  compatible substitutes rather than a silent DejaVu fallback), CVD-safe palettes, panel labels
-  in figure coordinates, export with provenance written into the file metadata.
-- `scripts/figcheck.py` — eight deterministic defect classes (missing glyphs, clipped text,
-  colliding ticks, type below the journal floor, rainbow colormaps, continuous mapping with no
-  colorbar, legend covering data, truncated bar baseline) plus dichromacy and grayscale
+- Chart choice guided by encoding effectiveness rather than a chart catalog.
+- `scripts/figstyle.py` for journal geometry, font resolution, CVD-safe palettes, panel
+  labels, and provenance-aware export.
+- `scripts/figcheck.py` for deterministic defect checks plus dichromacy and grayscale
   simulation.
-- References on chart choice, copy-pasteable recipes, colour, journal specs (including the
-  matplotlib CJK font-fallback trap), and a visual review checklist.
+- References for chart choice, recipes, color, journal requirements, and visual review.
 
 Both scripts self-test:
 
 ```bash
-python plugins/scifig/skills/scifig/scripts/figstyle.py --selftest   # style, fonts, panel labels, export
-python plugins/scifig/skills/scifig/scripts/figcheck.py demo         # deliberately broken figure; all detectors fire
+python plugins/scifig/skills/scifig/scripts/figstyle.py --selftest
+python plugins/scifig/skills/scifig/scripts/figcheck.py demo
 ```
 
-Requires matplotlib, numpy and Pillow. No seaborn dependency — the two statistical primitives
-that come up on nearly every grouped figure (`box_strip`, `jitter`) are implemented in plain
-matplotlib.
+Requires matplotlib, numpy, and Pillow.
 
----
+## Development
 
-# How these were built
-
-Every guardrail was developed with the RED-GREEN-REFACTOR loop from Superpowers'
-`writing-skills`: dispatch subagents to run pressure scenarios **without** the skill, record
-their rationalizations verbatim, write rules that answer those specific rationalizations, then
-re-run the same scenarios. Every row in every red-flag table is something an agent actually said
-in a baseline run, not something imagined.
-
-`checking-prior-work`'s baseline (two non-domain scenarios, under time pressure):
-
-| Scenario | RED (no skill) | GREEN (with skill) |
-|---|---|---|
-| Add "did you mean" to an argparse CLI | **Zero tool calls**; answered purely from training knowledge, threshold unsourced | Six tool calls; identified `difflib` as the same function CPython uses for `NameError` suggestions, and actually ran four input cases |
-| Test whether p99 tail latency is JVM GC | Zero tool calls; designed a bespoke method from first principles with a self-invented `≥50 ms` threshold | Six tool calls; cited Dean & Barroso's tail-at-scale, coordinated omission, **safepoint ≠ GC pause**, and the standard JFR approach, with sources |
-
-Both baselines failed the same way, and that failure is the origin of the skill's central clause.
-
-Two traps worth knowing if you test skills this way yourself:
-
-1. Once a skill file exists in `.claude/skills/`, it enters the auto-loaded skill list for
-   **every** subsequent subagent — so a "no-skill control" dispatched after writing the file is
-   worthless. Any clean RED must run before the file is written.
-2. Test agents given a real project write into the real tree. Use hypothetical or
-   foreign-domain scenarios.
+The skills are written as small, independently triggered research behaviors. Their
+instructions emphasize observable evidence, explicit scope, and qualified conclusions so
+they remain useful across disciplines and research methods.
 
 ## License
 
-MIT — see [LICENSE](LICENSE). Applies to both plugins: the skill Markdown and the scifig
-scripts.
+MIT — see [LICENSE](LICENSE). Applies to both plugins, including the skill Markdown and the
+scifig scripts.
