@@ -1,4 +1,4 @@
-# rigor
+# evidence-first
 
 General-purpose research skills for evidence-grounded work, plus a toolkit for
 publication-quality scientific figures.
@@ -8,7 +8,7 @@ publication-quality scientific figures.
 - **`scifig`** — scientific figures, from claim to submission.
 
 ```text
-/plugin marketplace add wangkant/rigor
+/plugin marketplace add wangkant/evidence-first
 /plugin install rigor@wangkant
 /plugin install scifig@wangkant
 ```
@@ -17,8 +17,8 @@ The skills are plain Markdown and can also be copied into any harness that reads
 `SKILL.md`:
 
 ```bash
-git clone https://github.com/wangkant/rigor.git /tmp/rigor
-cp -r /tmp/rigor/plugins/*/skills/* ~/.claude/skills/
+git clone https://github.com/wangkant/evidence-first.git /tmp/evidence-first
+cp -r /tmp/evidence-first/plugins/*/skills/* ~/.claude/skills/
 ```
 
 ---
