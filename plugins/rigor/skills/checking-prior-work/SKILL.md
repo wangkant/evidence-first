@@ -21,21 +21,39 @@ Two searches are distinct and often both matter:
 ## Workflow
 
 1. State the proposed research question or decision in one sentence.
-2. Search the most relevant internal and external sources. Use queries broad enough to find
+2. Search the most relevant permitted sources. Respect a closed corpus or a request not to
+   browse; inspect the supplied material and disclose that boundary. Use queries broad enough to find
    synonymous terms, competing methods, negative results, and earlier versions of the work.
 3. Open the load-bearing sources. Titles, snippets, and remembered citations are leads, not
    evidence.
 4. Compare the proposed work with what you found: replicate, extend, contrast, synthesize,
    reuse, adapt, or pursue a supported gap.
-5. Revise the question, design, or originality claim before proceeding.
+5. Use the findings to choose unspecified details or propose a material change to a fixed
+   question or design. Do not silently replace the user's chosen method.
 
 Search depth should match the stakes: a focused check may be enough for a small exploratory
 analysis, while a novelty claim or major study needs broader coverage. It never scales to
 zero when prior work could materially change the result.
 
+## Search boundary and stopping rule
+
+Reuse a verified search record when its question, source versions, and coverage still fit.
+Search again for changed assumptions, new evidence, or a time-sensitive claim; shortening
+an existing report does not itself require another search.
+
+For a focused check, stop when the load-bearing sources have been inspected and further
+queries no longer change the approach or expose a material alternative. Record remaining
+gaps. A systematic review follows its specified search and screening protocol instead.
+
+If access or tools are unavailable, distinguish **not searched**, **not accessible**, and
+**searched but not found**. Continue work supported by available evidence; restrict any
+novelty or completeness claim. Do not invent searches, citations, or full-text findings.
+
 ## Required record
 
-Before the first substantive deliverable, provide:
+Keep a concise record in the response or an existing research note; use the following
+fields when a separate record helps. A small task may cover them in a few sentences.
+Do not create a new file or repeat an unchanged record just to satisfy the format.
 
 ```text
 PRIOR WORK

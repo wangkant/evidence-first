@@ -115,16 +115,18 @@ each subplot.
 A caption must be readable independently of the main text:
 
 ```
-Figure 3. <one-sentence conclusion, not "bar chart of X">.
+Figure 3. <supported conclusion or descriptive exploratory title>.
 (a) <what is plotted>. Points = <what one row is>, n = <n per group>.
 Error bars = <SD / SEM / 95% CI — say which>.
-Statistics = <test>, <multiple-comparison correction>; exact p values annotated.
+Statistics = <test and correction, if performed>; identify sampling unit and pairing.
 Scale bar = <required for micrographs>. Data source: <file / pipeline>.
 ```
 
-**The error type must be stated.** SD describes the spread of the data, SEM = SD/√n
-describes the uncertainty of the mean, and 95% CI ≈ 1.96×SEM. They differ by a √n and a
-1.96; conflating them completely distorts the reader's sense of effect size.
+Include uncertainty and statistics only when actually computed. **State the error type.**
+SD describes spread. SEM = SD/√n assumes independent observations; a normal-approximation
+95% CI for a mean is mean ±1.96 SEM, but that approximation is not universal. State the
+CI method and preserve pairing or clustering. Do not fabricate uncertainty from a single
+summary value or add an unrequested significance test to complete the caption.
 
 Annotating **exact p values** beats stars: stars discard precision, and journals do not
 agree on what `*` means.

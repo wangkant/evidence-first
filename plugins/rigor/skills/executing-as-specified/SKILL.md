@@ -35,10 +35,28 @@ expand the research question.
 2. Use the shortest sound path that satisfies it, reusing compatible existing materials.
 3. Do not silently add or remove filters, outcomes, populations, baselines, controls,
    preprocessing, sensitivity analyses, or interpretation.
-4. If a missing choice materially changes the answer, ask or clearly state the assumption.
+4. Resolve routine implementation choices directly. If a missing choice changes the
+   estimand, population, interpretation, cost, or irreversible action, use an already
+   authorized rule or ask one focused question. Disclosure alone does not authorize a
+   material change to a fixed requirement. Complete unaffected work while it is unresolved.
 5. If a necessary integrity check changes the requested procedure, label the change and its
    effect. Otherwise keep optional extensions separate from the requested result.
 6. Report the requested deliverable first.
+
+## Integrity checks and stopping
+
+Checks needed to compute the requested result correctly belong to the task: validate
+schema, units, join cardinality, missingness, and whether the producing run completed.
+Detection does not authorize dropping rows, deduplicating entities, imputing values, or
+changing thresholds. Apply the stated policy; otherwise expose the affected result as
+unresolved. For example, a mean with an unspecified missing-value policy must not silently
+become a complete-case mean.
+
+Finish when the requested artifact exists, the checks needed to trust it have passed,
+and material limitations are stated. Extra models, controls, or sensitivity analyses are
+separate work unless requested or necessary to resolve a demonstrated validity problem.
+Exploratory results remain exploratory; do not describe choices made after inspecting
+results as prespecified.
 
 ## Common mistakes
 

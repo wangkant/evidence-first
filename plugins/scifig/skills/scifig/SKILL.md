@@ -1,17 +1,10 @@
 ---
 name: scifig
 description: >-
-  Use whenever a task will produce any data figure — even if the user only says
-  "plot this", "let me see the trend", or hands over a CSV/array/DataFrame and asks
-  "how should I show this?". Covers choosing the chart, drawing it, asserting the
-  claim numerically, running deterministic defect checks, eyeballing the render, and
-  exporting at journal column width. Trigger words: plot, chart, figure, graph,
-  visualize, visualization, "what chart should I use", "how do I show this",
-  matplotlib, seaborn, ggplot, heatmap, boxplot, violin, scatter, line, bar, error
-  bars, significance annotation, UMAP, ROC, volcano plot, sequence logo, genome
-  track, palette, colorblind, colorbar, facet, panel, subplot, vector, SVG, PDF,
-  DPI, column width, CJK boxes, caption. NOT for diagrams, flowcharts, or
-  architecture drawings, and not for interactive web/dashboard charts.
+  Use when creating, revising, or checking static scientific data figures, including
+  exploratory plots, statistical comparisons, heatmaps, and publication exports.
+  Covers chart choice, uncertainty, accessible encoding, and figure validation.
+  Not for diagrams, architecture drawings, or interactive dashboards.
 ---
 
 # scifig — scientific figures, from claim to submission
@@ -21,14 +14,14 @@ description: >-
 A scientific figure rarely fails because someone can't drive matplotlib. It fails for one
 of three reasons:
 
-1. **The figure has no claim** — data is drawn, but the reader doesn't know what to take
-   away;
+1. **The figure has no purpose** — neither a research question nor an evidence-supported
+   finding guides what the reader should inspect;
 2. **The encoding lies** — bars starting at 9.8, a rainbow colormap inventing boundaries,
    n=4 hidden behind a mean bar;
 3. **The figure and the data disagree** — the text says 0.97, the figure says 0.94, and
    nobody notices.
 
-So the order here is: **pin the claim → choose the encoding → draw → let the script verify
+So the order here is: **state the question or supported claim → choose the encoding → draw → verify
 the numbers → run the checker → look at it → export.** The plotting code is the middle
 step; the value is at both ends.
 
@@ -37,22 +30,22 @@ or dashboards belong to a dataviz skill, not this one.
 
 ---
 
-## Step 1: write a four-line figure spec (30 seconds, saves 80% of the rework)
+## Step 1: write a four-line figure spec
 
 Before drawing, put these four lines in the plotting script's top docstring:
 
 ```
-CLAIM:  treated samples show an order-of-magnitude higher response than matched controls (90% vs 1%)
-UNIT:   one row = one region; treated n=4,812, control n=4,812 (matched on GC and density)
-MAP:    x=group (2 levels)  y=response fold-change  point=each region  error=bootstrap 95% CI
-SOURCE: results/marks_summary.parquet, column response_fc
+QUESTION: how does response differ between treated and matched control regions?
+UNIT:     one row = one region; retain pairing IDs and report n after exclusions
+MAP:      x=group, y=response, point=region; show paired differences if pairing is valid
+SOURCE:   results/marks_summary.parquet, columns group, region_id, pair_id, response
 ```
 
 Why each line earns its place:
 
-- **CLAIM** determines the chart type. From identical data, "A is higher than B" becomes a
+- **QUESTION or CLAIM** determines the chart type. From identical data, "A is higher than B" becomes a
   grouped dot plot, "A rises with dose" becomes a line, "A correlates with B" becomes a
-  scatter. Without a claim, chart choice is guesswork.
+  scatter. An exploratory question is sufficient; a conclusion is not required in advance.
 - **UNIT** is the most common source of error. If "what is one row" is fuzzy, you end up
   double-counting the same entity, or counting summit-level rows as if they were
   interval-level. Not being able to write down n means you don't yet understand the data.
@@ -63,10 +56,11 @@ Why each line earns its place:
   `figstyle.save(provenance=...)` writes it into the file metadata so figure and data stay
   bound together.
 
-When the user gives data but no claim: **state your inference and a default plan, then
-ask** — "this looks like it's meant to say X, so I'll draw Y; if you actually mean Z, it
-should be W instead." Asking "what do you want to say?" empty-handed just hands the work
-back.
+For exploratory work, state a sensible question and proceed with a descriptive plot.
+Ask only when the missing choice materially changes the meaning, such as the sampling
+unit or requested comparison. Never select or filter data to make a desired conclusion
+appear. Scale the process: a quick plot needs a brief spec and checks relevant to it;
+journal-specific geometry is needed for submission work.
 
 ---
 
@@ -107,7 +101,7 @@ Locating the chart family from the claim (full decision tree and counter-example
 | What the distribution looks like | distribution | Histogram/KDE; box+points or ridgeline across groups |
 | It changes with time or dose | trend | Line + error band (x must be an ordered continuum) |
 | Who ranks where | ranking | Sorted horizontal bars with values labeled |
-| What it is composed of | part-to-whole | Stacked bars or treemap; **never a pie** |
+| What it is composed of | part-to-whole | Stacked bars; a few labeled slices can serve a simple part-to-whole overview |
 | Pairwise / matrix structure | matrix | Heatmap (viridis for sequential; RdBu_r + vcenter=0 when zero is meaningful) |
 | How sets overlap | set | Venn up to 3 sets, **UpSet from 4** |
 | Position along a coordinate | spatial | Stacked tracks sharing x |
@@ -116,9 +110,8 @@ Locating the chart family from the claim (full decision tree and counter-example
 
 ## Step 3: choose a tool
 
-Default to **matplotlib + `scripts/figstyle.py`**: it is the only stack that pins size to
-the inch and type to the point while reliably emitting editable vector output, which is
-exactly what submission requires. Others as needed:
+Default to **matplotlib + `scripts/figstyle.py`** for explicit physical size, point-sized
+type, and vector export. Preserve an existing suitable plotting stack. Others as needed:
 
 | Situation | Use | Why |
 |---|---|---|
@@ -126,7 +119,7 @@ exactly what submission requires. Others as needed:
 | Grouped statistical plots, less code | seaborn (`catplot`/`relplot`/`objects`) | Faceting in one line |
 | You think in ggplot2 | plotnine | Same API as R ggplot2; complete facet/scale system |
 | Store the figure as a reusable spec | Altair / Vega-Lite | Encoding channels declared explicitly; spec is JSON and versionable |
-| Interactive supplement (HTML) | plotly / bokeh | Supplementary only — **never** for print (type size uncontrollable) |
+| Interactive supplement (HTML) | plotly / bokeh | Validate physical size and fonts separately if exporting a static version |
 | Tens of millions of points | datashader / holoviews | Aggregate before rendering to avoid overplotting |
 | Journal style sheets | SciencePlots | figstyle ships equivalent presets |
 | Complex heatmaps (clustering + annotation bars) | R's ComplexHeatmap is the gold standard; in Python, PyComplexHeatmap / marsilea | Annotation bars share coordinates with the main panel; unified legend management |
@@ -171,38 +164,49 @@ A few things that decide success outright:
 - **Color is never the only encoding.** Use `categorical(n)` (Okabe-Ito, CVD-safe) *and*
   vary line style or marker — the figure has to survive grayscale printing and red–green
   color vision deficiency.
-- **Error bars must know what they are.** SD, SEM, and 95% CI differ by a √n and a 1.96;
-  an error bar whose type isn't in the caption may as well not be drawn.
+- **Define uncertainty.** Name SD, SEM, or the CI method in the caption and identify the
+  independent sampling unit. SEM = SD/√n assumes independent observations; a 95% CI is
+  not universally ±1.96 SEM. Preserve pairing and clustering in estimation or resampling.
+  Do not add a statistical test or fabricate error bars when only summary values exist.
 - **When n is small, draw the points** (`box_strip` / `jitter`). A mean bar with one error
   bar hides the distribution, the outliers, and the true n; the first reviewer comment will
   be "show individual data points". Exception: **deterministic single values** (fixed-seed
   pipeline outputs, single measurements) are not samples — the small-n warning does not
   apply. List them as points; no box, no bar.
-- **Never connect points across a categorical axis.** A line implies intermediate states
-  between the two points, and a categorical axis has none.
+- **Connect categories only when the connection means something**, such as the same
+  participant measured in two conditions. Identify the pairing; unrelated categories
+  should not look like a continuous trajectory.
 
 Complete copy-pasteable recipes per chart type (heatmaps, volcano, ROC, UMAP, ridgeline,
 sequence logos, coordinate tracks, multi-panel) are in `references/recipes.md`.
 
 ---
 
-## Step 5: make the script assert the claim
+## Step 5: verify the plotted values and any claim
 
-**Every number on the figure is computed from the data, never typed in.** Then have the
-script assert the CLAIM:
+Compute data-derived labels from the exact plotted data, after the displayed filters.
+Reference thresholds may be specified constants with a source. Check sample counts,
+missingness, units, and transformations even for exploratory plots. If a numerical claim
+is made, check that its strength matches the computed result:
 
 ```python
-hi = df.loc[df.group == "treated", "response_fc"].mean()
-lo = df.loc[df.group == "matched", "response_fc"].mean()
-assert hi / lo > 5, f"CLAIM says order-of-magnitude; actual {hi:.3f} vs {lo:.3f} = {hi/lo:.1f}×"
-ax.set_title(f"{hi/lo:.0f}× higher")        # the title comes from the data too
+import numpy as np
+
+if plotted_df[["group", "response"]].isna().any().any():
+    raise ValueError("Resolve missing values under the authorized policy before aggregation")
+summary = plotted_df.groupby("group")["response"].mean()  # same rows used to draw
+difference = summary["treated"] - summary["control"]
+if not np.isfinite(difference):
+    raise ValueError("Cannot report a mean difference from non-finite group means")
+ax.set_title(f"Observed mean difference: {difference:.2f}")
 ```
 
-Why this step is not optional: drift between the text and the figure is the most common
-and hardest-to-self-catch error in research — a filter changed, an upstream step was
-re-run, and the figure is still the old one. The assertion makes **the script crash when
-the figure and the claim disagree**, instead of quietly producing a beautiful wrong figure.
-If the data changed and the assertion fails, the thing to change is the claim.
+Drift between text and figure can occur when a filter changes or an upstream step is
+re-run while the figure still reflects older results. Deriving labels from the plotted
+values prevents stale annotations; explicit checks catch invalid inputs or unsupported claims.
+If a check fails, investigate the inputs and computation. When the computation is sound,
+revise or remove the claim; do not weaken the check just to make the figure pass.
+An observed difference alone does not establish statistical significance or causality.
 
 ---
 
@@ -246,18 +250,25 @@ save(fig, "figs/fig3", formats=("pdf", "png"), dpi=600,
   embedding. A prefix like `ABCDEF+NimbusSans` inside the PDF is the standard notation for
   **a subset that IS embedded** — not for "missing".
 
+The CLI exits 1 for `FAIL`, 0 otherwise; `--strict` also fails on `WARN`, including skipped
+checks. Raster checks cover both DPI axes and both physical dimensions. PDF inspection
+requires `pypdf` and covers the first page; multi-page files produce a warning. SVG file
+inspection is unsupported: audit the Figure before export and inspect a PNG preview.
+`--cvd` previews of vector files use `pymupdf`. A clean file check
+does not establish scientific validity or replace visual inspection.
+
 ---
 
 ## Caption template
 
-A caption must stand alone without the main text. Figures with error bars or tests
-**must** carry all of it:
+A caption must stand alone without the main text. Include uncertainty and statistics
+lines only when those quantities were actually computed:
 
 ```
-Figure 3. <one-sentence conclusion, not "bar chart of X">.
+Figure 3. <supported conclusion or descriptive title for an exploratory figure>.
 (a) <what is plotted>. Points = <what one row is>, n = <n per group>.
 Error bars = <SD / SEM / 95% CI — say which>.
-Statistics = <test>, <multiple-comparison correction>; p values annotated on the figure.
+Statistics = <test and correction, if performed>; describe the sampling unit and pairing.
 Data source: <file / pipeline>.
 ```
 
@@ -268,14 +279,15 @@ and a growing number of journals require exact values.
 
 ## When to push back, and how
 
-When the user has already specified the chart type and parameters: **do it**. Only speak up
-if that choice would make the figure **lie**, and then say it in one sentence, still
-produce the figure, and attach an alternative version if warranted.
+Preserve a specified chart type and parameters. If a choice materially misrepresents the
+data, explain the issue and use an authorized correction, or ask for the smallest needed
+decision. Do not deliver a knowingly misleading figure as final or silently change the
+analysis to fit a chart. An alternative figure is optional, not a mandatory extra.
 
-Must be raised (the figure will mislead readers): truncated bar baselines, lines across
-categorical axes, dual y-axes manufacturing a correlation, rainbow colormaps, missing
-colorbars, n hidden behind a mean bar, pies comparing angles, significance annotations with
-no stated test.
+Material issues include truncated bar baselines, artificial trajectories across unrelated
+categories, dual axes manufacturing a correlation, a continuous mapping without a scale,
+or significance annotations without a performed test. Judge the actual encoding: a paired
+slope plot and a small labeled pie are not automatically invalid.
 
 Need not be raised (preference only): whether the palette is pretty, gridlines or not, font
 taste, legend placement — do what the user said.
@@ -302,4 +314,3 @@ Both scripts self-test: `python figstyle.py --selftest`, `python figcheck.py dem
 Sibling guardrails, if installed: `sourcing-claims` (every number needs a locator — step 5
 is how that lands on a figure) and `executing-as-specified` (a specified plot is drawn as
 specified, without unrequested extras).
-

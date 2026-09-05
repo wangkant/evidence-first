@@ -1,8 +1,8 @@
 {
   "name": "scifig",
   "displayName": "scifig",
-  "version": "1.0.0",
-  "description": "Scientific figures from claim to submission: a four-line figure spec, chart choice by encoding effectiveness, numeric assertions against the claim, eight deterministic defect checks, colour-vision and grayscale simulation, and journal-column-width vector export.",
+  "version": "1.1.0",
+  "description": "Static scientific figures from exploration to publication: question or claim, faithful encoding, numerical validation, defect checks, color-vision previews, and provenance-aware export.",
   "author": {
     "name": "Kant Wang",
     "url": "https://github.com/wangkant"

@@ -1,7 +1,7 @@
 # evidence-first
 
-General-purpose research skills for evidence-grounded work, plus a toolkit for
-publication-quality scientific figures.
+Research skills that help agents check what is known, carry out the requested work,
+and make claims the evidence supports. Includes tools for scientific figures.
 
 - **`rigor`** — three research guardrails for checking prior work, staying within the
   requested scope, and grounding claims in evidence.
@@ -13,13 +13,34 @@ publication-quality scientific figures.
 /plugin install scifig@wangkant
 ```
 
+These are **Claude Code** plugin commands. `wangkant` is the marketplace identifier;
+`evidence-first` is the repository name. The plugins remain independently installable.
+
 The skills are plain Markdown and can also be copied into any harness that reads
 `SKILL.md`:
 
 ```bash
 git clone https://github.com/wangkant/evidence-first.git /tmp/evidence-first
+mkdir -p ~/.claude/skills
 cp -r /tmp/evidence-first/plugins/*/skills/* ~/.claude/skills/
 ```
+
+For Codex, copy the same skill directories into `~/.agents/skills/` instead. Preserve
+each whole directory so scifig's scripts and references travel with its entrypoint.
+The Markdown research skills need no Python dependencies; scifig's helpers do.
+
+### Try it
+
+| Request | What the skills help with |
+|---|---|
+| “Check whether this question has already been answered; use only these papers.” | Inspect the permitted corpus, describe coverage, qualify a gap claim |
+| “Run this analysis exactly as specified.” | Preserve filters and methods, check inputs, expose unresolved choices |
+| “Does 0.91 versus 0.89 show our model is better?” | Separate the observed difference from uncertainty and evaluation leakage |
+| “Show this distribution; I don't have a conclusion yet.” | Make an exploratory plot without inventing a finding or statistical test |
+
+Use a skill by its name in your agent, or let a compatible host select it from its
+description. Discovery and invocation syntax depend on the host. The skills guide agent
+behavior; they do not themselves grant browsing access or enforce correctness.
 
 ---
 
@@ -48,9 +69,10 @@ Search two complementary surfaces before committing to an approach:
 - **Existing resources:** internal notes, previous analyses, datasets, instruments, code,
   and established methods that may already provide what the task needs.
 
-The skill ends with a concise `PRIOR WORK` record: what was searched, what was found, what
+The skill keeps a concise prior-work record: what was searched, what was found, what
 was not found, and how the result changes the proposed work. Search depth scales with the
-claim, but never to zero when originality, method choice, or evidence quality is at stake.
+claim. A small task can record this in a few sentences; an unchanged verified record can
+be reused. Access failures and sources not searched are distinct from negative findings.
 
 ### `executing-as-specified`
 
@@ -59,9 +81,10 @@ question, population or corpus, evidence, methods, exclusions, and output. It pr
 silent additions such as extra filters, analyses, controls, or interpretations that change
 the meaning of the result.
 
-Material validity, safety, feasibility, or ethics problems are still surfaced. The skill
-does not require blind execution; it requires making necessary deviations explicit rather
-than quietly rewriting the study.
+Necessary input and integrity checks belong to the task. Discovering missing values or
+duplicate keys does not authorize silently dropping records. Routine choices are resolved
+directly; a material change to a fixed requirement needs an authorized rule or a focused
+question. Work ends once the scoped artifact and its necessary checks are complete.
 
 ### `sourcing-claims`
 
@@ -80,12 +103,12 @@ cannot establish a general fact about the world.
 
 ## scifig
 
-A scientific figure rarely fails because someone cannot drive matplotlib. It fails because
-it has no claim, because the encoding misleads, or because the figure and the text disagree.
-The workflow is: **pin the claim → choose the encoding → draw → assert the numbers → run the
+A scientific figure needs a clear question or supported claim, a faithful encoding, and
+agreement between its data and annotations.
+The workflow is: **state the question or claim → choose the encoding → draw → verify the numbers → run the
 checker → inspect the render → export.**
 
-- A four-line figure spec (`CLAIM / UNIT / MAP / SOURCE`) that determines the chart before
+- A four-line figure spec (`QUESTION or CLAIM / UNIT / MAP / SOURCE`) that determines the chart before
   code is written.
 - Chart choice guided by encoding effectiveness rather than a chart catalog.
 - `scripts/figstyle.py` for journal geometry, font resolution, CVD-safe palettes, panel
@@ -94,20 +117,48 @@ checker → inspect the render → export.**
   simulation.
 - References for chart choice, recipes, color, journal requirements, and visual review.
 
-Both scripts self-test:
+### Dependencies and checks
+
+Python 3.10+ is required for the helpers. Install plotting dependencies with:
+
+```bash
+python -m pip install matplotlib numpy Pillow
+```
+
+PDF file inspection additionally needs `pypdf`; vector preview through `--cvd` needs
+`pymupdf`. Neither is needed to audit an in-memory matplotlib Figure.
+
+Run the style smoke test and the deliberately defective checker demo:
 
 ```bash
 python plugins/scifig/skills/scifig/scripts/figstyle.py --selftest
 python plugins/scifig/skills/scifig/scripts/figcheck.py demo
 ```
 
-Requires matplotlib, numpy, and Pillow.
+Check an exported figure:
+
+```bash
+python plugins/scifig/skills/scifig/scripts/figcheck.py figure.png --inches 3.5 2.5 --strict
+```
+
+Exit codes: `0` means no blocking finding, `1` means `FAIL` (or `WARN` with `--strict`),
+and `2` means invalid CLI arguments. The demo intentionally prints defects and exits `0`.
+Warnings include unsupported formats and skipped checks. File inspection covers raster
+DPI and dimensions, or the first PDF page's dimensions and fonts. It does not inspect SVG
+internals or establish scientific validity. Audit the Figure before export and inspect
+its rendered preview as well.
 
 ## Development
 
-The skills are written as small, independently triggered research behaviors. Their
-instructions emphasize observable evidence, explicit scope, and qualified conclusions so
-they remain useful across disciplines and research methods.
+```bash
+python -m pip install -r requirements-dev.txt
+python -m unittest discover -s tests -v
+```
+
+CI runs on Python 3.10 and 3.12. Tests validate marketplace/plugin version agreement,
+skill entrypoints and bundled references, real figure files, and CLI failure behavior.
+See [behavioral scenarios](tests/behavioral-scenarios.md) for manual skill evaluation;
+structural tests alone cannot establish that an agent follows the guidance.
 
 ## License
 

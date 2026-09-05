@@ -9,7 +9,7 @@
     {
       "name": "rigor",
       "description": "General-purpose research skills for checking prior work, preserving the requested scope, and grounding findings in evidence.",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "source": "./plugins/rigor",
       "author": {
         "name": "Kant Wang",
@@ -18,8 +18,8 @@
     },
     {
       "name": "scifig",
-      "description": "Scientific figures from claim to submission: figure spec, encoding-effectiveness chart choice, numeric claim assertions, deterministic defect checks, CVD simulation, journal-width vector export.",
-      "version": "1.0.0",
+      "description": "Scientific figures from exploration to publication: faithful encoding, numerical checks, accessible previews, provenance-aware export, and automation-friendly validation.",
+      "version": "1.1.0",
       "source": "./plugins/scifig",
       "author": {
         "name": "Kant Wang",

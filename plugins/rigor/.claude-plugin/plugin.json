@@ -1,7 +1,7 @@
 {
   "name": "rigor",
   "displayName": "Rigor",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "General-purpose research rigor: check prior work before starting, preserve the requested research scope during execution, and connect findings to precise evidence.",
   "author": {
     "name": "Kant Wang",

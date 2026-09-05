@@ -462,6 +462,24 @@ def cvd_preview(png: str, kinds=("deuteranopia", "grayscale")) -> list[str]:
 def check_file(path: str, min_dpi: int = 300,
                expect_inches: tuple[float, float] | None = None) -> list[tuple[str, str]]:
     """Check a figure **already written to disk**: format, raster resolution, vector size, font embedding."""
+    if not os.path.isfile(path):
+        return [("FAIL", f"figure file does not exist: {path}")]
+    try:
+        return _check_file(path, min_dpi, expect_inches)
+    except (OSError, ValueError, EOFError, TypeError, KeyError, IndexError) as exc:
+        return [("FAIL", f"cannot inspect figure {path}: {exc}")]
+
+
+def _size_issues(width, height, expected):
+    if expected is None:
+        return []
+    return [("WARN", f"{axis} {actual:.2f} in ≠ target {target:g} in. "
+                     "Fix figsize and re-export; rescaling also changes type size.")
+            for axis, actual, target in zip(("width", "height"), (width, height), expected)
+            if abs(actual - target) > 0.06]
+
+
+def _check_file(path, min_dpi, expect_inches):
     issues = []
     ext = os.path.splitext(path)[1].lower().lstrip(".")
     if ext in ("jpg", "jpeg"):
@@ -470,29 +488,41 @@ def check_file(path: str, min_dpi: int = 300,
                                "(vector) or PNG/TIFF (raster)."))
     if ext in ("png", "tif", "tiff", "jpg", "jpeg"):
         from PIL import Image
-        im = Image.open(path)
-        dpi = im.info.get("dpi", (72, 72))[0]
-        issues.append(("INFO", f"{ext.upper()} {im.size[0]}x{im.size[1]} px @ {dpi:g} dpi "
-                               f"→ {im.size[0] / max(dpi, 1):.2f} in wide"))
-        if dpi < min_dpi:
-            issues.append(("WARN", f"{dpi:g} dpi is below {min_dpi}. Line art wants 600 dpi, "
-                                   "but the better answer is **to export vector in the "
-                                   "first place**."))
+        with Image.open(path) as im:
+            im.load()  # Detect truncated/corrupt pixel data, not just a readable header.
+            raw_dpi = im.info.get("dpi")
+            if raw_dpi is None:
+                issues.append(("WARN", "DPI metadata is absent; physical size and resolution are unknown."))
+            else:
+                dx, dy = raw_dpi if isinstance(raw_dpi, (tuple, list)) else (raw_dpi, raw_dpi)
+                if not all(np.isfinite(d) and d > 0 for d in (dx, dy)):
+                    return issues + [("FAIL", f"invalid DPI metadata: {raw_dpi}")]
+                w, h = im.width / dx, im.height / dy
+                issues.append(("INFO", f"{ext.upper()} {im.width}x{im.height} px @ "
+                                       f"{dx:g}x{dy:g} dpi → {w:.2f} x {h:.2f} in"))
+                # PNG's pixels-per-metre encoding rounds 300 dpi to about 299.9994.
+                if min(dx, dy) < min_dpi - 0.01:
+                    issues.append(("WARN", f"{dx:g}x{dy:g} dpi is below {min_dpi}. "
+                                           "Export at the required resolution or use vector output."))
+                issues.extend(_size_issues(w, h, expect_inches))
     elif ext == "pdf":
         try:
             from pypdf import PdfReader
         except ImportError:
-            return issues + [("INFO", "install pypdf to check PDF size and font embedding.")]
-        rd = PdfReader(path)
+            return issues + [("WARN", "PDF checks skipped: install pypdf to check size and font embedding.")]
+        from pypdf.errors import PdfReadError
+        try:
+            rd = PdfReader(path)
+            if not rd.pages:
+                return [("FAIL", "PDF contains no pages.")]
+        except PdfReadError as exc:
+            return [("FAIL", f"cannot inspect PDF: {exc}")]
+        if len(rd.pages) > 1:
+            issues.append(("WARN", "Multi-page PDF: only the first page is checked."))
         box = rd.pages[0].mediabox
         w, h = float(box.width) / 72, float(box.height) / 72
         issues.append(("INFO", f"PDF {w:.2f} x {h:.2f} in"))
-        if expect_inches:
-            if abs(w - expect_inches[0]) > 0.06:
-                issues.append(("WARN", f"width {w:.2f} in ≠ target {expect_inches[0]} in. "
-                                       "If the size is wrong, do not rescale in "
-                                       "Word/LaTeX — go back, fix figsize and re-export, "
-                                       "or the type size changes with it."))
+        issues.extend(_size_issues(w, h, expect_inches))
         # Font embedding: the presence of /FontFile* means embedded. A name with an
         # 'ABCDEF+' prefix is the standard notation for **a subset that IS
         # embedded**, not for "missing" — don't be fooled by the prefix.
@@ -515,13 +545,16 @@ def check_file(path: str, min_dpi: int = 300,
                         embedded.add(nm)
                 del desc
         except Exception as e:
-            issues.append(("INFO", f"font check skipped: {e}"))
+            issues.append(("WARN", f"font check skipped: {e}"))
         if fonts:
             missing = fonts - embedded
             issues.append(("INFO", f"fonts {sorted(n.split('+')[-1] for n in fonts)}"))
             if missing:
                 issues.append(("WARN", f"not embedded: {sorted(missing)}. Set "
                                        "rcParams['pdf.fonttype']=42 and re-export."))
+    else:
+        issues.append(("WARN", f"unsupported file format for inspection: .{ext}. "
+                               "Use audit(fig) before export and inspect a PNG preview."))
     return issues
 
 
@@ -559,15 +592,22 @@ def _cli() -> int:
     p.add_argument("target", nargs="?", default="demo", help="image path, or 'demo'")
     p.add_argument("--cvd", action="store_true", help="write color-vision/grayscale simulations")
     p.add_argument("--min-dpi", type=int, default=300)
+    p.add_argument("--strict", action="store_true", help="also exit nonzero on WARN, including skipped checks")
     p.add_argument("--inches", type=float, nargs=2, default=None,
                    metavar=("W", "H"), help="expected final size in inches")
     a = p.parse_args()
+    if a.min_dpi <= 0:
+        p.error("--min-dpi must be positive")
+    if a.inches and not all(np.isfinite(v) and v > 0 for v in a.inches):
+        p.error("--inches requires finite positive width and height")
     if a.target == "demo":
         return _demo()
-    report(check_file(a.target, a.min_dpi, tuple(a.inches) if a.inches else None))
+    verdict = report(check_file(a.target, a.min_dpi, tuple(a.inches) if a.inches else None))
+    if verdict == "FAIL":
+        return 1
     if a.cvd:
         print("CVD simulations:", cvd_preview(preview(a.target, "/tmp/_cvd_src.png")))
-    return 0
+    return int(a.strict and verdict == "WARN")
 
 
 if __name__ == "__main__":

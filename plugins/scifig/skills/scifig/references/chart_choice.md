@@ -25,7 +25,7 @@ arguing**, not by **what the data looks like**:
 | **Distribution** | How values are spread | Histogram, KDE, box, violin, ridgeline, ECDF |
 | **Change over time** | Varies with time or dose | Line + error band, area, slope chart |
 | **Ranking** | Who is first, who is last | Sorted horizontal bars, dot plots, bump charts |
-| **Part-to-whole** | What it is made of | Stacked bars, treemap, waffle (**not pie**) |
+| **Part-to-whole** | What it is made of | Stacked bars, treemap, waffle; a few labeled pie slices for a simple overview |
 | **Matrix** | Pairwise relationships | Heatmap, clustered heatmap, correlation matrix, confusion matrix |
 | **Set** | How sets overlap | Venn (≤3 sets), **UpSet (≥4 sets)** |
 | **Flow** | From where to where | Sankey, chord, river |
@@ -61,9 +61,8 @@ channel. Everything else — which group, which batch — goes to color, shape, 
 
 Direct consequences:
 
-- Pie charts encode quantity as angle (rung 4) on non-aligned scales and make readers
-  compare around a circle — so a better option always exists (sorted horizontal bars,
-  rungs 1+3).
+- Pie charts encode quantity as angle on non-aligned scales. Prefer sorted bars for
+  precise comparisons; a few labeled slices can communicate a simple composition.
 - Bubble charts encode quantity as area (rung 5), and people systematically underestimate
   large circles. Avoid unless you genuinely need x, y, and size at once and size is
   secondary.
@@ -102,7 +101,7 @@ One continuous variable
 
 One categorical variable's counts / proportions
 ├── Compare magnitudes         → horizontal bars, sorted by value, values labeled directly
-└── Show composition           → stacked bars or treemap (never a pie)
+└── Show composition           → stacked bars; a few labeled pie slices for a simple overview
 
 One categorical × one continuous
 ├── n < 3 per group, or deterministic single values → plot the points, no box, no bar
@@ -157,28 +156,29 @@ Try these in order. **Do not solve it by adding colors.**
 
 ## 6. Sixteen ways to make a figure lie
 
-The first eight **must** be raised with the user (the figure will mislead readers); the
-last eight merely hurt readability — mention as appropriate.
+Assess the actual encoding and scientific context. Raise material distortions; distinguish
+them from preferences or readability improvements. An exploratory figure may answer a
+question without asserting a conclusion.
 
-**Misleading (say so, in one sentence, then produce the figure anyway plus an alternative)**
+**Potentially misleading (explain the issue and resolve it before final delivery)**
 
 | # | Practice | Why it lies | Instead |
 |---|---|---|---|
 | 1 | Bar chart y-axis not starting at 0 | Bar length is no longer proportional to value; a tiny difference is inflated into a huge one | `set_ylim(bottom=0)`; to show small differences use a dot plot or difference plot |
-| 2 | Line connecting points on a categorical x-axis | Implies intermediate states between categories that do not exist | Dot plot or bars |
+| 2 | Line connecting unrelated categories | Implies a trajectory or relationship not in the data | Dot plot or bars; paired slope plots are appropriate when the same unit connects conditions |
 | 3 | Dual y-axes for two unrelated quantities | Where the curves cross and diverge is set by the author's choice of scales, not by the data | Two stacked panels sharing x; or standardize both onto one axis |
 | 4 | Rainbow / jet colormap | Non-monotonic lightness manufactures false edges and peaks where the data is smooth | viridis / cividis; RdBu_r when zero is meaningful |
 | 5 | Continuous color mapping with no colorbar | Readers cannot convert color back to a number | `fig.colorbar(m, label="quantity (unit)")` |
 | 6 | Mean bars only, with small n | Hides the distribution, the outliers, and the true n | Overlay every data point |
-| 7 | Diverging colormap whose midpoint is not 0 | The color's sign decouples from the data's sign | `TwoSlopeNorm(vcenter=0)` |
+| 7 | Diverging midpoint unrelated to the scientific reference | Color implies a departure from the wrong baseline | Center at the meaningful reference, such as zero for differences or one for ratios |
 | 8 | Significance annotations without the test and correction | Readers cannot judge whether the p value means anything | Caption states the test, the multiple-comparison correction, and n |
 
 **Readability (raise as appropriate)**
 
 | # | Practice | Problem | Instead |
 |---|---|---|---|
-| 9 | Pie chart | Angles are about 3× harder to read than lengths; beyond four slices they cannot be ranked | Horizontal bars sorted by value |
-| 10 | 3-D anything | Perspective distorts every value | 2-D |
+| 9 | Pie chart for precise comparisons or many categories | Slice angles are difficult to compare accurately | Sorted bars; a few labeled slices are acceptable for a simple part-to-whole overview |
+| 10 | Decorative 3-D for otherwise 2-D data | Perspective distorts quantitative comparisons | 2-D; use 3-D when spatial structure itself is the subject |
 | 11 | More than 8 categorical colors | Past the limit of reliable discrimination; one color reads as two things | Facet, or focus-and-gray |
 | 12 | Legend sitting on the data | Occlusion, plus back-and-forth eye travel | Move the legend outside, or label curves directly |
 | 13 | Five claims in one figure | Readers do not know what to look at | Split it |
