@@ -47,12 +47,14 @@ behavior; they do not themselves grant browsing access or enforce correctness.
 ## rigor
 
 Research can go wrong before, during, or after the analysis: a question may repeat known
-work, the execution may drift beyond the stated scope, or the final claims may outrun the
-evidence. `rigor` adds one skill at each point.
+work, a setting may be inherited from an earlier round without re-examination, the execution
+may drift beyond the stated scope, or the final claims may outrun the evidence. `rigor` adds
+one skill at each point.
 
 | Skill | When it applies | Core rule |
 |---|---|---|
 | `checking-prior-work` | Before substantive research work | Check relevant literature, records, data, methods, and prior analyses before deciding what to do |
+| `confirming-parameters` | Before execution, when the request leaves a value open | Treat a setting carried over from an earlier round, a prior run, or your own notes as a proposal to confirm or re-derive, not a decision |
 | `executing-as-specified` | While carrying out a defined research request | Preserve the requested question, evidence, method, constraints, and deliverable; surface material problems instead of silently changing scope |
 | `sourcing-claims` | When reporting findings | Distinguish measured, reported, and inferred claims, and attach a precise locator to each substantive claim |
 
@@ -73,6 +75,20 @@ The skill keeps a concise prior-work record: what was searched, what was found, 
 was not found, and how the result changes the proposed work. Search depth scales with the
 claim. A small task can record this in a few sentences; an unchanged verified record can
 be reused. Access failures and sources not searched are distinct from negative findings.
+
+### `confirming-parameters`
+
+Every parameter has a source and an age. A value set in the current request is settled. A
+value the requester chose in an earlier round has lapsed: decisive settings change between
+rounds, so it is shown and confirmed rather than inherited. A value you measured or chose
+yourself previously has expired and is re-derived, since reproducing a number from notes shows
+the notes are unchanged, not that the number still holds.
+
+The skill asks about the parameters rather than the task, because "proceed?" and "same setup as
+before?" conceal the choices that determine the result. Materials carry across rounds — data
+already collected and code that already runs are reused — while measured values, derived limits,
+and conclusions are re-derived. Effort scales with stakes; confirming settings that cannot change
+the result returns the work to the requester for no gain.
 
 ### `executing-as-specified`
 
