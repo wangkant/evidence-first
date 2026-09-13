@@ -3,9 +3,58 @@
 Research skills that help agents check what is known, carry out the requested work,
 and make claims the evidence supports. Includes tools for scientific figures.
 
-- **`rigor`** — three research guardrails for checking prior work, staying within the
-  requested scope, and grounding claims in evidence.
+- **`rigor`** — four research guardrails for checking prior work, confirming parameters,
+  staying within the requested scope, and grounding claims in evidence.
 - **`scifig`** — scientific figures, from claim to submission.
+
+## Installation
+
+Choose one method below. The five skills use the open [Agent Skills](https://agentskills.io/home)
+format and can be installed independently of the Claude Code plugin packaging.
+
+### Multiple agents: Skills CLI
+
+With Node.js/npm and Git installed, run the community [Skills CLI](https://github.com/vercel-labs/skills)
+and select the skills and agents you want, including Codex, Claude Code, Cursor, or OpenCode:
+
+```bash
+npx skills add wangkant/evidence-first
+```
+
+The default scope is the current project; add `--global` for your user account.
+To preview the available skills or target Codex explicitly:
+
+```bash
+npx skills add wangkant/evidence-first --list
+npx skills add wangkant/evidence-first --agent codex --skill '*' --global
+```
+
+Use `--skill scifig` to install only the figure skill. `rigor` is a plugin group, not
+a skill name; its four individual skill names are listed [below](#rigor).
+
+### OpenAI Codex
+
+In Codex, ask the built-in installer:
+
+```text
+$skill-installer Install all five skills from https://github.com/wangkant/evidence-first: the four directories under plugins/rigor/skills and plugins/scifig/skills/scifig, including their bundled resources.
+```
+
+For manual installation, use `~/.agents/skills/` for your account or `.agents/skills/`
+inside the target project. See the [copy commands below](#manual-installation-without-nodejs).
+In Codex CLI or the IDE extension, check `/skills`, then invoke a skill, for example:
+
+```text
+$checking-prior-work Check whether this question has already been answered; use only these papers.
+$scifig Make an exploratory plot of this distribution.
+```
+
+If the skill does not appear, restart Codex. See [OpenAI's skills documentation](https://learn.chatgpt.com/docs/build-skills)
+for discovery paths and invocation details.
+
+### Claude Code
+
+Run these commands inside Claude Code:
 
 ```text
 /plugin marketplace add wangkant/evidence-first
@@ -13,21 +62,43 @@ and make claims the evidence supports. Includes tools for scientific figures.
 /plugin install scifig@wangkant
 ```
 
-These are **Claude Code** plugin commands. `wangkant` is the marketplace identifier;
-`evidence-first` is the repository name. The plugins remain independently installable.
+`wangkant` is the marketplace identifier; `evidence-first` is the repository name.
+The plugins remain independently installable. To install standalone skills instead,
+use the Skills CLI or copy them to `~/.claude/skills/` (user) or `.claude/skills/` (project).
 
-The skills are plain Markdown and can also be copied into any harness that reads
-`SKILL.md`:
+### Manual installation without Node.js
+
+Clone into a new directory, then copy the complete skill folders. These examples install
+all five skills for your Codex user account; change the destination for another host or scope.
+
+**macOS / Linux (Bash):**
 
 ```bash
-git clone https://github.com/wangkant/evidence-first.git /tmp/evidence-first
-mkdir -p ~/.claude/skills
-cp -r /tmp/evidence-first/plugins/*/skills/* ~/.claude/skills/
+git clone https://github.com/wangkant/evidence-first.git
+mkdir -p "$HOME/.agents/skills"
+cp -R evidence-first/plugins/rigor/skills/* "$HOME/.agents/skills/"
+cp -R evidence-first/plugins/scifig/skills/scifig "$HOME/.agents/skills/"
 ```
 
-For Codex, copy the same skill directories into `~/.agents/skills/` instead. Preserve
-each whole directory so scifig's scripts and references travel with its entrypoint.
-The Markdown research skills need no Python dependencies; scifig's helpers do.
+**Windows (PowerShell):**
+
+```powershell
+git clone https://github.com/wangkant/evidence-first.git
+$skillDestination = Join-Path $HOME '.agents/skills'
+New-Item -ItemType Directory -Force -Path $skillDestination | Out-Null
+Copy-Item -Path './evidence-first/plugins/rigor/skills/*' -Destination $skillDestination -Recurse
+Copy-Item -LiteralPath './evidence-first/plugins/scifig/skills/scifig' -Destination $skillDestination -Recurse
+```
+
+For a project install, run from the target project and use `.agents/skills` as the
+destination. If a same-named skill is already installed, back it up or choose a fresh
+destination before copying.
+
+For another Agent Skills host, use its documented skill directory or import mechanism;
+there is no single installation path shared by every host. Preserve each **whole directory**,
+so the result is `<skills-directory>/scifig/SKILL.md` alongside `scripts/` and `references/`.
+The four research skills need no Python dependencies. To run scifig's helpers, install
+the [Python dependencies below](#dependencies-and-checks) in the environment your agent uses.
 
 ### Try it
 
