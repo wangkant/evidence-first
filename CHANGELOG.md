@@ -14,6 +14,8 @@ plugin's `plugin.json`. Earlier history is in the git log.
 - `figcheck.py --cvd` on a vector file without `pymupdf` reports a warning instead of a
   traceback; demo and CVD scratch files go to the platform temp directory instead of `/tmp`.
 - `figstyle.py` rejects unknown command-line arguments with a usage message.
+- Both command lines replace characters a legacy console encoding (cp1252, GBK) cannot
+  print instead of crashing with a traceback.
 - Skill text lists all ten deterministic checks that `audit` performs.
 
 ## rigor 1.3.0

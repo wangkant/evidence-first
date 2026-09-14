@@ -609,6 +609,8 @@ def _selftest() -> int:
 
 if __name__ == "__main__":
     import sys
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(errors="replace")
     if sys.argv[1:] not in ([], ["--selftest"]):
         print("usage: python figstyle.py --selftest", file=sys.stderr)
         raise SystemExit(2)

@@ -1,4 +1,5 @@
 """Regression tests using real image files and the public command line."""
+import os
 import subprocess
 import sys
 import tempfile
@@ -115,6 +116,15 @@ class FileChecks(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertTrue((self.root / "figure_deuteranopia.png").is_file(), result.stdout)
         self.assertTrue((self.root / "figure_grayscale.png").is_file(), result.stdout)
+
+    def test_output_survives_a_legacy_console_encoding(self):
+        env = {**os.environ, "PYTHONIOENCODING": "cp1252"}
+        result = subprocess.run([sys.executable, str(SCRIPTS / "figcheck.py"),
+                                 str(self.raster(dpi=(72, 72)))],
+                                capture_output=True, text=True, env=env)
+        self.assertNotIn("Traceback", result.stderr)
+        self.assertIn("[WARN]", result.stdout)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_invalid_dimensions_are_usage_error(self):
         result = self.cli(self.raster(), "--inches", "nan", "2")

@@ -594,7 +594,15 @@ def _demo() -> int:
     return 0
 
 
+def _console_safe() -> None:
+    """Messages use arrows and dashes; a cp1252/GBK console must not crash on them."""
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(errors="replace")
+
+
 def _cli() -> int:
+    _console_safe()
     p = argparse.ArgumentParser(description="scifig figure QC")
     p.add_argument("target", nargs="?", default="demo", help="image path, or 'demo'")
     p.add_argument("--cvd", action="store_true", help="write color-vision/grayscale simulations")
