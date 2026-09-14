@@ -1,16 +1,38 @@
 # evidence-first
 
-Research skills that help agents check what is known, carry out the requested work,
+[![Validate](https://github.com/wangkant/evidence-first/actions/workflows/validate.yml/badge.svg)](https://github.com/wangkant/evidence-first/actions/workflows/validate.yml)
+
+Research skills that help coding agents check what is known, carry out the requested work,
 and make claims the evidence supports. Includes tools for scientific figures.
 
 - **`rigor`** — four research guardrails for checking prior work, confirming parameters,
   staying within the requested scope, and grounding claims in evidence.
-- **`scifig`** — scientific figures, from claim to submission.
+- **`scifig`** — scientific figures, from claim to submission, with two Python helpers
+  for journal styling and figure validation.
+
+## Repository layout
+
+```text
+.claude-plugin/marketplace.json      Claude Code marketplace index (plugin names, versions)
+plugins/rigor/                       plugin: four skills, Markdown only
+  skills/<skill-name>/SKILL.md
+plugins/scifig/                      plugin: one skill with bundled resources
+  skills/scifig/SKILL.md             workflow: spec, chart choice, draw, verify, check, export
+  skills/scifig/scripts/figstyle.py  journal geometry, fonts, palettes, layout, export
+  skills/scifig/scripts/figcheck.py  deterministic defect checks, CVD/grayscale previews, file QC
+  skills/scifig/references/*.md      chart choice, recipes, color, journal specs, visual review
+tests/                               structural, file-based, and CLI regression tests
+tests/behavioral-scenarios.md        manual scenarios for evaluating agent behavior
+CHANGELOG.md                         version history per plugin
+```
+
+Each skill directory is self-contained and follows the open [Agent Skills](https://agentskills.io/home)
+format, so it can be copied to any compatible host without the plugin wrapper.
 
 ## Installation
 
-Choose one method below. The five skills use the open [Agent Skills](https://agentskills.io/home)
-format and can be installed independently of the Claude Code plugin packaging.
+Choose one method below. The five skills can be installed independently of the Claude
+Code plugin packaging.
 
 ### Multiple agents: Skills CLI
 
@@ -242,10 +264,20 @@ python -m pip install -r requirements-dev.txt
 python -m unittest discover -s tests -v
 ```
 
-CI runs on Python 3.10 and 3.12. Tests validate marketplace/plugin version agreement,
-skill entrypoints and bundled references, real figure files, and CLI failure behavior.
+CI runs on Linux (Python 3.10 and 3.12) and Windows (Python 3.12). Tests validate
+marketplace/plugin version agreement, skill entrypoints and bundled references, detector
+findings on real figures, exported file geometry and provenance, and CLI exit behavior.
 See [behavioral scenarios](tests/behavioral-scenarios.md) for manual skill evaluation;
 structural tests alone cannot establish that an agent follows the guidance.
+
+### Contributing
+
+- Keep each skill self-contained: a change to `scifig` guidance that depends on a script
+  behavior should land with the script change and a test.
+- Bump the plugin version in both `.claude-plugin/marketplace.json` and the plugin's
+  `plugin.json` when its skills or scripts change, and add a line to [CHANGELOG.md](CHANGELOG.md).
+- For a behavioral change to a skill, run the relevant scenario in
+  [behavioral scenarios](tests/behavioral-scenarios.md) before and after, and record the outcome.
 
 ## License
 

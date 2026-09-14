@@ -2,7 +2,7 @@
   "name": "rigor",
   "displayName": "Rigor",
   "version": "1.3.0",
-  "description": "General-purpose research rigor: check prior work before starting, preserve the requested research scope during execution, and connect findings to precise evidence.",
+  "description": "Four research guardrails: check prior work before starting, confirm inherited parameters, preserve the requested scope during execution, and connect findings to precise evidence.",
   "author": {
     "name": "Qiankang Wang",
     "url": "https://github.com/wangkant"
@@ -16,6 +16,7 @@
     "evidence",
     "literature-review",
     "prior-work",
+    "parameters",
     "scope",
     "claim-sourcing",
     "reproducibility"

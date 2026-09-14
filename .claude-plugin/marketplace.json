@@ -8,7 +8,7 @@
   "plugins": [
     {
       "name": "rigor",
-      "description": "General-purpose research skills for checking prior work, preserving the requested scope, and grounding findings in evidence.",
+      "description": "Four research guardrails: check prior work before starting, confirm inherited parameters, preserve the requested scope during execution, and connect findings to precise evidence.",
       "version": "1.3.0",
       "source": "./plugins/rigor",
       "author": {
@@ -18,8 +18,8 @@
     },
     {
       "name": "scifig",
-      "description": "Scientific figures from exploration to publication: faithful encoding, numerical checks, accessible previews, provenance-aware export, and automation-friendly validation.",
-      "version": "1.1.0",
+      "description": "Static scientific figures from exploration to publication: question or claim, faithful encoding, numerical verification, defect checks, color-vision previews, and provenance-aware export.",
+      "version": "1.2.0",
       "source": "./plugins/scifig",
       "author": {
         "name": "Qiankang Wang",
