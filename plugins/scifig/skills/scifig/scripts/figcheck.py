@@ -6,8 +6,8 @@ Division of labour (important — don't run only half of it)
 - **This script** catches only what can be **computed**: missing glyphs, text out
   of bounds, colliding ticks, type below the journal floor, a continuous color
   mapping with no colorbar, rainbow/jet colormaps, a legend covering data points,
-  a truncated bar baseline, missing axis labels, and more categorical colors than
-  are distinguishable. None of these need eyes; arithmetic settles them.
+  a truncated bar baseline (vertical or horizontal), missing axis labels, and more
+  categorical colors than are distinguishable. None of these need eyes; arithmetic settles them.
 - **Your eyes** catch what cannot be computed: does the figure make its point? Is
   the whitespace balanced? Are the panel weights right? That is why ``preview()``
   renders a PNG that you must **actually look at** with the Read tool. Checklist
@@ -33,10 +33,10 @@ CLI
 from __future__ import annotations
 
 import argparse
-
 import logging
 import os
 import sys
+import tempfile
 import warnings
 
 import matplotlib as mpl
@@ -255,19 +255,31 @@ def audit(fig, min_pt: float = 6.0, max_categorical: int = 8,
                                    "rest in pale gray."))
 
     # --- Truncated bar baseline (the classic deception) ---------------------
+    # Covers ax.bar (length along y) and ax.barh (length along x). Bars on a
+    # log axis cannot start at 0 at all, so they get a WARN about the encoding
+    # rather than a FAIL about the limits.
     for i, ax in enumerate(axes):
         bars = [p for c in ax.containers for p in c
                 if isinstance(p, mpl.patches.Rectangle)] if ax.containers else []
         if len(bars) < 2:
             continue
-        y0 = ax.get_ylim()[0]
-        bases = {round(float(b.get_y()), 9) for b in bars}
-        if bases == {0.0} and y0 > 0:
-            issues.append(("FAIL", f"subplot {i} draws bars from 0 but the y axis starts "
-                                   f"at {y0:g}, so bar length is no longer proportional to "
-                                   "the value — this inflates a tiny difference into a "
-                                   "huge one. Set ax.set_ylim(bottom=0), or use a dot plot "
-                                   "or difference plot to show small differences."))
+        for axis_name, base_of, lim, scale in (
+                ("y", lambda b: b.get_y(), ax.get_ylim(), ax.get_yscale()),
+                ("x", lambda b: b.get_x(), ax.get_xlim(), ax.get_xscale())):
+            if {round(float(base_of(b)), 9) for b in bars} != {0.0}:
+                continue
+            if scale == "log":
+                issues.append(("WARN", f"subplot {i} draws bars on a log {axis_name} axis: "
+                                       "bar length is not proportional to the value and "
+                                       "depends on the arbitrary lower limit. Prefer a dot "
+                                       "plot or a line for data spanning orders of magnitude."))
+            elif lim[0] > 0:
+                issues.append(("FAIL", f"subplot {i} draws bars from 0 but the {axis_name} "
+                                       f"axis starts at {lim[0]:g}, so bar length is no longer "
+                                       "proportional to the value — this inflates a tiny "
+                                       "difference into a huge one. Set "
+                                       f"ax.set_{axis_name}lim(0, None), or use a dot plot "
+                                       "or difference plot to show small differences."))
 
     # --- Legend covering the data -------------------------------------------
     for i, ax in enumerate(axes):
@@ -534,7 +546,6 @@ def _check_file(path, min_dpi, expect_inches):
                 f = fdict[k].get_object()
                 nm = str(f.get("/BaseFont", "?"))
                 fonts.add(nm)
-                desc = f.get("/FontDescriptor")
                 stack = [f]
                 if "/DescendantFonts" in f:
                     stack += [d.get_object() for d in f["/DescendantFonts"]]
@@ -543,7 +554,6 @@ def _check_file(path, min_dpi, expect_inches):
                     if d and any(x in d.get_object()
                                  for x in ("/FontFile", "/FontFile2", "/FontFile3")):
                         embedded.add(nm)
-                del desc
         except Exception as e:
             issues.append(("WARN", f"font check skipped: {e}"))
         if fonts:
@@ -571,16 +581,13 @@ def _demo() -> int:
     ax.set_xticklabels([f"very_long_condition_{i}" for i in range(4)])  # overlap
     ax.set_title("A deliberately overlong title that runs past the canvas edge")
     ax.tick_params(labelsize=4)                          # type too small → FAIL
-    im = axes[1].imshow(rng.random((8, 8)), cmap="jet")  # rainbow + no colorbar
-    del im
-    x = np.linspace(0, 1, 40)
+    axes[1].imshow(rng.random((8, 8)), cmap="jet")       # rainbow + no colorbar
     for i in range(3):
         axes[1].plot([], [], label=f"s{i}")
     axes[1].legend(loc="center")
-    del x
     print("=== figcheck demo (this figure is broken on purpose) ===")
     report(audit(fig, min_pt=6))
-    out = preview(fig, "/tmp/figcheck_demo.png", dpi=120)
+    out = preview(fig, os.path.join(tempfile.gettempdir(), "figcheck_demo.png"), dpi=120)
     print(f"preview: {out}")
     print(f"CVD simulations: {cvd_preview(out)}")
     plt.close(fig)
@@ -606,7 +613,14 @@ def _cli() -> int:
     if verdict == "FAIL":
         return 1
     if a.cvd:
-        print("CVD simulations:", cvd_preview(preview(a.target, "/tmp/_cvd_src.png")))
+        # Simulations land next to the figure for a raster; a vector file is
+        # rasterized into the temp directory first, which needs pymupdf.
+        try:
+            src = preview(a.target, os.path.join(tempfile.gettempdir(), "_cvd_src.png"))
+            print("CVD simulations:", cvd_preview(src))
+        except RuntimeError as exc:
+            print(f"  [WARN] CVD simulations skipped: {exc}")
+            verdict = "WARN"
     return int(a.strict and verdict == "WARN")
 
 

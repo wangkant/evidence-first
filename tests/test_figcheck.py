@@ -95,6 +95,27 @@ class FileChecks(unittest.TestCase):
         self.assertNotIn("Traceback", result.stderr)
         self.assertEqual(result.returncode, 1)
 
+    def test_cvd_without_pymupdf_reports_instead_of_crashing(self):
+        path = self.root / "figure.pdf"
+        writer = PdfWriter()
+        writer.add_blank_page(width=144, height=72)
+        with path.open("wb") as stream:
+            writer.write(stream)
+        code = ("import sys; sys.modules['fitz'] = None; sys.modules['pymupdf'] = None; "
+                f"sys.path.insert(0, {str(SCRIPTS)!r}); import figcheck; "
+                f"sys.argv = ['figcheck', {str(path)!r}, '--cvd']; sys.exit(figcheck._cli())")
+        result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True)
+        self.assertNotIn("Traceback", result.stderr)
+        self.assertIn("pymupdf", result.stdout)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_cvd_simulations_are_written_next_to_the_figure(self):
+        path = self.raster()
+        result = self.cli(path, "--cvd")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertTrue((self.root / "figure_deuteranopia.png").is_file(), result.stdout)
+        self.assertTrue((self.root / "figure_grayscale.png").is_file(), result.stdout)
+
     def test_invalid_dimensions_are_usage_error(self):
         result = self.cli(self.raster(), "--inches", "nan", "2")
         self.assertEqual(result.returncode, 2)
