@@ -342,6 +342,12 @@ def finalize(fig, engine: str = "constrained", pad: float = 0.04) -> None:
     Uses a layout engine rather than a global rcParam: it takes over only at this
     moment, so if you deliberately wrote ``subplots_adjust`` earlier, pass
     engine=None to skip.
+
+    One caveat: a colorbar added to a figure that had **no** layout engine builds
+    its own gridspec, and constrained layout cannot adopt it afterwards (it
+    divides by zero on matplotlib 3.7-3.11). Create such figures with
+    ``plt.subplots(..., layout="constrained")``, or call ``finalize`` once before
+    adding the colorbar; either way the engine exists when the colorbar is made.
     """
     if engine:
         try:
@@ -356,16 +362,28 @@ def finalize(fig, engine: str = "constrained", pad: float = 0.04) -> None:
             # panels) can make constrained layout blow up. A layout failure should
             # not kill the whole plotting script — fall back to tight_layout, and
             # failing that keep the author's own arrangement.
+            if any(_is_colorbar(ax) for ax in fig.axes):
+                hint = ("a colorbar was added before the figure had a layout engine: "
+                        "create the figure with plt.subplots(..., layout='constrained') "
+                        "or call finalize(fig) before fig.colorbar(...)")
+            else:
+                hint = ("for a hand-built GridSpec, pass finalize(fig, engine=None) "
+                        "directly")
             warnings.warn(f"constrained layout failed ({type(e).__name__}: {e}); "
-                          "falling back to tight_layout. For a hand-built GridSpec, "
-                          "pass finalize(fig, engine=None) directly.", RuntimeWarning,
-                          stacklevel=2)
+                          f"falling back to tight_layout. Likely cause: {hint}.",
+                          RuntimeWarning, stacklevel=2)
         try:
             fig.set_layout_engine("none")
             fig.tight_layout(pad=0.4)
         except Exception:
             pass
     fig.canvas.draw()
+
+
+def _is_colorbar(ax) -> bool:
+    """A colorbar's own axes: never a data panel, so it gets no a/b/c label."""
+    return (getattr(ax, "_colorbar", None) is not None
+            or getattr(ax, "_colorbar_info", None) is not None)
 
 
 def panel_labels(fig, axes: Sequence | None = None, style: str = "nature",
@@ -381,7 +399,7 @@ def panel_labels(fig, axes: Sequence | None = None, style: str = "nature",
     """
     axs = list(axes) if axes is not None else [a for a in fig.axes
                                                if a.get_subplotspec() is not None
-                                               and getattr(a, "_scifig_cbar", False) is False]
+                                               and not _is_colorbar(a)]
     fmt = {"nature": "{}", "upper": "{}", "ieee": "({})", "paren": "({})"}.get(style, "{}")
     letters = "ABCDEFGHIJKLMNOP" if style == "upper" else "abcdefghijklmnop"
     size = size or mpl.rcParams["font.size"] + 1
@@ -557,7 +575,7 @@ def _selftest() -> int:
                              "treat": rng.normal(1.2, 1, 11)})
     axes[0].set_xlabel("condition")
     axes[0].set_ylabel("signal (a.u.)")
-    sig_bracket(axes[0], 0, 1, np.max(np.concatenate([[3]])), "p=0.004")
+    sig_bracket(axes[0], 0, 1, 3.0, "p=0.004")
     print("[box_strip] n per group =", ns)
     x = np.linspace(0, 6, 60)
     for i, k in enumerate([1.0, 1.5, 2.0]):
@@ -591,4 +609,9 @@ def _selftest() -> int:
 
 if __name__ == "__main__":
     import sys
-    raise SystemExit(_selftest() if "--selftest" in sys.argv else _selftest())
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(errors="replace")
+    if sys.argv[1:] not in ([], ["--selftest"]):
+        print("usage: python figstyle.py --selftest", file=sys.stderr)
+        raise SystemExit(2)
+    raise SystemExit(_selftest())

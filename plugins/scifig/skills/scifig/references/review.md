@@ -66,6 +66,7 @@ of whether your lightness differences are sufficient.
 | Legend covering the curves | `loc` auto-picked a spot inside the data | `bbox_to_anchor=(1.01, 1)` to move it outside, or label lines directly |
 | Subplots not vertically aligned | One subplot has a longer y label | Equalize label lengths, or `fig.align_ylabels()` |
 | Panel labels in ragged positions | Hand-written `ax.text` | Use `panel_labels(fig)` |
+| `finalize` warns "constrained layout failed" | A colorbar was added before the figure had a layout engine | Create the figure with `layout="constrained"`, or call `finalize` before `fig.colorbar` |
 | Scatter is a solid black blob | Overplotting | hexbin / 2-D density / lower alpha + subsample, and say so in the caption |
 | Heatmap shows no structure | Extreme values eat the dynamic range | Quantile clipping (`vmin=q01, vmax=q99`) or a log scale; note it in the caption |
 | Line colors indistinguishable | More than ~8 categories | Facet, or focus-and-gray |

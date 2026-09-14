@@ -1,10 +1,11 @@
 ---
 name: scifig
 description: >-
-  Use when creating, revising, or checking static scientific data figures, including
-  exploratory plots, statistical comparisons, heatmaps, and publication exports.
-  Covers chart choice, uncertainty, accessible encoding, and figure validation.
-  Not for diagrams, architecture drawings, or interactive dashboards.
+  Use when creating, revising, or checking static scientific data figures with matplotlib
+  or a compatible stack, including exploratory plots, statistical comparisons, heatmaps,
+  and journal submission exports. Covers chart choice, uncertainty, accessible encoding,
+  numerical verification, and figure validation. Not for diagrams, architecture drawings,
+  or interactive dashboards.
 ---
 
 # scifig — scientific figures, from claim to submission
@@ -140,7 +141,7 @@ identically to every tool.
 
 ```python
 """
-CLAIM/UNIT/MAP/SOURCE — the four lines go here.
+QUESTION or CLAIM / UNIT / MAP / SOURCE — the four lines go here.
 """
 import sys; sys.path.insert(0, "<skills>/scifig/scripts")
 import matplotlib; matplotlib.use("Agg")
@@ -150,7 +151,8 @@ from figcheck import audit, report, preview, cvd_preview
 
 info = use_style("nature", lang="en")      # print it: reports metric-compatible substitutes
 print(info)
-fig, axes = plt.subplots(1, 2, figsize=figure_size("nature", cols=2, ratio=0.42))
+fig, axes = plt.subplots(1, 2, figsize=figure_size("nature", cols=2, ratio=0.42),
+                         layout="constrained")   # so a later fig.colorbar() joins the layout
 ...                                         # then use the native matplotlib API as usual
 finalize(fig)                               # resolve layout (do not use subplots_adjust)
 panel_labels(fig)                           # a/b/c, aligned in figure coordinates
@@ -158,6 +160,9 @@ panel_labels(fig)                           # a/b/c, aligned in figure coordinat
 
 A few things that decide success outright:
 
+- **Create the figure with `layout="constrained"` when it will carry a colorbar.** A
+  colorbar added to a figure that has no layout engine builds its own gridspec, and
+  `finalize` cannot adopt it afterwards; it warns and falls back to `tight_layout`.
 - **figsize fixes the final size once**, and nothing is rescaled after export. matplotlib
   type sizes are absolute points: a 7 in figure scaled to 3.5 in inside Word turns 8 pt
   into 4 pt, and the journal's automated check bounces it.
@@ -218,10 +223,12 @@ png = preview(fig, "figs/_check.png")           # then Read this PNG with the Re
 cvd_preview(png)                                # CVD + grayscale simulations — read those too
 ```
 
-`audit` catches eight **computable** problems: missing glyphs, text out of bounds,
-colliding ticks, type below the journal floor, rainbow colormaps, a continuous color
-mapping with no colorbar, a legend covering data points, and a truncated bar baseline.
-Any FAIL must be fixed before moving on.
+`audit` catches ten **computable** problems: missing glyphs, type below the journal
+floor, text out of bounds, colliding tick labels, missing axis labels, rainbow colormaps,
+a continuous color mapping with no colorbar, more categorical colors than readers can
+separate, a truncated bar baseline (vertical or horizontal bars), and a legend covering
+data points. Bars on a log axis get a warning instead, since their length cannot be
+proportional to the value. Any FAIL must be fixed before moving on.
 
 What `audit` cannot catch requires **actually reading the figure with the Read tool**: is
 the claim visible at a glance, are panel weights balanced, does an annotation cover key

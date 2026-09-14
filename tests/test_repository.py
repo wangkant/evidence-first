@@ -11,25 +11,30 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class RepositoryChecks(unittest.TestCase):
     def test_marketplace_matches_shipped_plugins(self):
-        market = json.loads((ROOT / ".claude-plugin/marketplace.json").read_text())
+        market = json.loads((ROOT / ".claude-plugin/marketplace.json").read_text(encoding="utf-8"))
         names = [entry["name"] for entry in market["plugins"]]
         self.assertEqual(len(names), len(set(names)), "duplicate plugin registration")
         for entry in market["plugins"]:
             with self.subTest(plugin=entry["name"]):
                 plugin = ROOT / entry["source"]
-                manifest = json.loads((plugin / ".claude-plugin/plugin.json").read_text())
+                manifest = json.loads((plugin / ".claude-plugin/plugin.json").read_text(encoding="utf-8"))
                 self.assertEqual(entry["name"], manifest["name"])
                 self.assertEqual(entry["version"], manifest["version"])
                 self.assertRegex(manifest["version"], r"^\d+\.\d+\.\d+$")
                 self.assertTrue((plugin / manifest["skills"]).is_dir())
                 self.assertTrue(list((plugin / manifest["skills"]).glob("*/SKILL.md")))
 
+    def test_scripts_do_not_hardcode_posix_temp_paths(self):
+        for path in (ROOT / "plugins").glob("*/skills/*/scripts/*.py"):
+            with self.subTest(script=path.name):
+                self.assertNotIn("/tmp/", path.read_text(encoding="utf-8"))
+
     def test_skill_frontmatter_and_bundled_resources(self):
         skills = list((ROOT / "plugins").glob("*/skills/*/SKILL.md"))
         self.assertTrue(skills)
         for path in skills:
             with self.subTest(skill=path.parent.name):
-                text = path.read_text()
+                text = path.read_text(encoding="utf-8")
                 self.assertTrue(text.startswith("---\n"))
                 _, frontmatter, body = text.split("---", 2)
                 meta = yaml.safe_load(frontmatter)

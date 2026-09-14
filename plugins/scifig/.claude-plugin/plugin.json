@@ -1,8 +1,8 @@
 {
   "name": "scifig",
   "displayName": "scifig",
-  "version": "1.1.0",
-  "description": "Static scientific figures from exploration to publication: question or claim, faithful encoding, numerical validation, defect checks, color-vision previews, and provenance-aware export.",
+  "version": "1.2.0",
+  "description": "Static scientific figures from exploration to publication: question or claim, faithful encoding, numerical verification, defect checks, color-vision previews, and provenance-aware export.",
   "author": {
     "name": "Qiankang Wang",
     "url": "https://github.com/wangkant"
@@ -18,7 +18,8 @@
     "colorblind",
     "accessibility",
     "journal",
-    "vector-export"
+    "vector-export",
+    "figure-validation"
   ],
   "skills": "./skills/"
 }

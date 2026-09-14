@@ -13,6 +13,10 @@ from figcheck import audit, report, preview, cvd_preview
 use_style("nature")
 ```
 
+Any figure that will carry a colorbar is created with `layout="constrained"` below.
+Without it, `finalize` cannot adopt the colorbar's gridspec and falls back to
+`tight_layout` with a warning.
+
 Contents
 1. [Group comparison](#1-group-comparison)  2. [Differences with CIs](#2-differences-with-cis)
 3. [Small multiples](#3-small-multiples)  4. [Focus-and-gray multi-series lines](#4-focus-and-gray-multi-series-lines)
@@ -122,13 +126,13 @@ forth between legend and curve.
 ## 5. Scatter and correlation
 
 ```python
-fig, ax = plt.subplots(figsize=figure_size("nature", 1))
+fig, ax = plt.subplots(figsize=figure_size("nature", 1), layout="constrained")
 if len(x) <= 5000:
     ax.scatter(x, y, s=4, alpha=0.5, lw=0, color=categorical(1)[0], rasterized=True)
 else:
     hb = ax.hexbin(x, y, gridsize=50, cmap=SEQUENTIAL["default"], mincnt=1,
                    linewidths=0)
-    fig.colorbar(hb, ax=ax, label="count")              # a color mapping requires a colorbar
+    fig.colorbar(hb, ax=ax, label="count")              # needs layout="constrained" above
 from scipy.stats import spearmanr
 rho, p = spearmanr(x, y)
 lim = [min(x.min(), y.min()), max(x.max(), y.max())]
@@ -174,7 +178,7 @@ ax.set_yticks(range(len(groups))); ax.set_yticklabels(groups)
 
 ```python
 # Sequential quantity
-fig, ax = plt.subplots(figsize=figure_size("nature", 1))
+fig, ax = plt.subplots(figsize=figure_size("nature", 1), layout="constrained")
 im = ax.imshow(M, cmap=SEQUENTIAL["default"], aspect="auto",
                vmin=np.nanquantile(M, 0.01), vmax=np.nanquantile(M, 0.99))
 fig.colorbar(im, ax=ax, label="coverage (RPKM)", fraction=0.046, pad=0.02)
